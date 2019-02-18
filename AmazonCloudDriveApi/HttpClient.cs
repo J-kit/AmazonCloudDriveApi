@@ -11,10 +11,9 @@ using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
-using Azi.Amazon.CloudDrive;
 using Newtonsoft.Json;
 
-namespace Azi.Tools
+namespace Azi.Amazon.CloudDrive.Http
 {
     /// <summary>
     /// Http helper class to send REST API requests
@@ -297,31 +296,31 @@ namespace Azi.Tools
                 RetryTimes,
                 RetryDelay,
                 async () =>
+                {
+                    var client = await GetHttpClient(url);
+                    client.Method = method.ToString();
+                    var data = JsonConvert.SerializeObject(obj);
+                    using (var content = new StringContent(data))
                     {
-                        var client = await GetHttpClient(url);
-                        client.Method = method.ToString();
-                        var data = JsonConvert.SerializeObject(obj);
-                        using (var content = new StringContent(data))
-                        {
-                            client.ContentType = content.Headers.ContentType.ToString();
+                        client.ContentType = content.Headers.ContentType.ToString();
 
-                            using (var output = await client.GetRequestStreamAsync())
-                            {
-                                await content.CopyToAsync(output);
-                            }
+                        using (var output = await client.GetRequestStreamAsync())
+                        {
+                            await content.CopyToAsync(output);
+                        }
+                    }
+
+                    using (var response = (HttpWebResponse)await client.GetResponseAsync())
+                    {
+                        if (!response.IsSuccessStatusCode())
+                        {
+                            return await LogBadResponse(response);
                         }
 
-                        using (var response = (HttpWebResponse)await client.GetResponseAsync())
-                        {
-                            if (!response.IsSuccessStatusCode())
-                            {
-                                return await LogBadResponse(response);
-                            }
-
-                            result = await responseParser(response);
-                        }
-                        return true;
-                    },
+                        result = await responseParser(response);
+                    }
+                    return true;
+                },
                 GeneralExceptionProcessor);
             return result;
         }
@@ -366,63 +365,66 @@ namespace Azi.Tools
         /// <typeparam name="TResult">Result type</typeparam>
         /// <param name="method">HTTP method</param>
         /// <param name="url">URL for request</param>
-        /// <param name="file">File upload parameters. Input stream must support Length</param>
+        /// <param name="fileInfo">File upload parameters. Input stream must support Length</param>
         /// <returns>Async result object</returns>
-        public async Task<TResult> SendFile<TResult>(HttpMethod method, string url, SendFileInfo file)
+        public async Task<TResult> SendFile<TResult>(HttpMethod method, string url, SendFileInfo fileInfo)
         {
             var result = default(TResult);
             await Retry.Do(
-                RetryTimes,
-                RetryDelay,
-                async () =>
-                    {
-                        var client = await GetHttpClient(url);
-                        try
-                        {
-                            client.Method = method.ToString();
-                            client.AllowWriteStreamBuffering = false;
+               RetryTimes,
+               RetryDelay,
+               async () =>
+               {
+                   var client = await GetHttpClient(url);
+                   try
+                   {
+                       client.Method = method.ToString();
+                       client.AllowWriteStreamBuffering = false;
 
-                            var boundry = Guid.NewGuid().ToString();
-                            client.ContentType = $"multipart/form-data; boundary={boundry}";
-                            client.SendChunked = false;
+                       var boundry = Guid.NewGuid().ToString();
+                       client.ContentType = $"multipart/form-data; boundary={fileInfo.MultipartBoundary.Boundary}";
+                       client.SendChunked = false;
 
-                            using (var input = file.StreamOpener())
-                            {
-                                var pre = GetMultipartFormPre(file, input.Length, boundry);
-                                var post = GetMultipartFormPost(boundry);
-                                var clientContentLength = pre.Length + input.Length + post.Length;
-                                client.ContentLength = clientContentLength;
+                       using (var input = fileInfo.StreamOpener())
+                       {
+                           var preFix = fileInfo.MultipartBoundary.GetPrefix(input);
+                           var postFix = fileInfo.MultipartBoundary.Postfix;
 
-                                file.CancellationToken.ThrowIfCancellationRequested();
+                           client.ContentLength = preFix.Length + input.Length + postFix.Length;
 
-                                using (var output = await client.GetRequestStreamAsync())
-                                {
-                                    var state = new CopyStreamState();
-                                    await CopyStreams(pre, output, file, null);
-                                    await CopyStreams(input, output, file, state);
+                           fileInfo.CancellationToken.ThrowIfCancellationRequested();
 
-                                    await CopyStreams(post, output, file, null);
-                                }
-                            }
-                            using (var response = (HttpWebResponse)await client.GetResponseAsync())
-                            {
-                                if (!response.IsSuccessStatusCode())
-                                {
-                                    return await LogBadResponse(response);
-                                }
+                           using (var output = await client.GetRequestStreamAsync())
+                           {
+                               var state = new CopyStreamState();
 
-                                result = await response.ReadAsAsync<TResult>();
-                            }
-                            return true;
-                        }
-                        catch (Exception)
-                        {
-                            client.Abort();
-                            throw;
-                        }
-                    },
-                FileSendExceptionProcessor);
+                               await CopyStreams(preFix, output, fileInfo, null);
+                               await CopyStreams(input, output, fileInfo, state);
+
+                               await CopyStreams(postFix, output, fileInfo, null);
+                           }
+                       }
+                       using (var response = (HttpWebResponse)await client.GetResponseAsync())
+                       {
+                           if (!response.IsSuccessStatusCode())
+                           {
+                               return await LogBadResponse(response);
+                           }
+
+                           result = await response.ReadAsAsync<TResult>();
+                       }
+                       return true;
+                   }
+                   catch (Exception)
+                   {
+                       client.Abort();
+                       throw;
+                   }
+               },
+               FileSendExceptionProcessor);
             return result;
+
+
         }
 
         /// <summary>
@@ -531,44 +533,6 @@ namespace Azi.Tools
             }
 
             throw ex;
-        }
-
-        private static Stream GetMultipartFormPost(string boundry)
-        {
-            var result = new MemoryStream(1000);
-            using (var writer = new StreamWriter(result, Utf8, 16, true))
-            {
-                writer.Write($"\r\n--{boundry}--\r\n");
-            }
-
-            result.Position = 0;
-            return result;
-        }
-
-        private static Stream GetMultipartFormPre(SendFileInfo file, long filelength, string boundry)
-        {
-            var result = new MemoryStream(1000);
-            using (var writer = new StreamWriter(result, Utf8, 16, true))
-            {
-                if (file.Parameters != null)
-                {
-                    foreach (var pair in file.Parameters)
-                    {
-                        writer.Write($"--{boundry}\r\n");
-                        writer.Write($"Content-Disposition: form-data; name=\"{pair.Key}\"\r\n\r\n{pair.Value}\r\n");
-                    }
-                }
-
-                writer.Write($"--{boundry}\r\n");
-                writer.Write(
-                    $"Content-Disposition: form-data; name=\"{file.FormName}\"; filename={file.FileName}\r\n");
-                writer.Write("Content-Type: application/octet-stream\r\n");
-
-                writer.Write($"Content-Length: {filelength}\r\n\r\n");
-            }
-
-            result.Position = 0;
-            return result;
         }
 
         private static async Task<bool> LogBadResponse(HttpWebResponse response)

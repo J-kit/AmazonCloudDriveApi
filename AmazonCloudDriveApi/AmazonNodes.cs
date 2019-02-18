@@ -8,8 +8,8 @@ using System.Linq;
 using System.Net.Http;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using Azi.Amazon.CloudDrive.Http;
 using Azi.Amazon.CloudDrive.JsonObjects;
-using Azi.Tools;
 
 namespace Azi.Amazon.CloudDrive
 {

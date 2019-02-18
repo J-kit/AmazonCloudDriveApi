@@ -3,6 +3,7 @@
 // </copyright>
 
 using System;
+using System.Threading.Tasks;
 
 namespace Azi.Amazon.CloudDrive
 {
@@ -17,6 +18,7 @@ namespace Azi.Amazon.CloudDrive
         /// <param name="accessToken">Authentication token</param>
         /// <param name="refreshToken">Authentication token refresh token</param>
         /// <param name="expiresIn">Authentication token expiration time</param>
-        void OnTokenUpdated(string accessToken, string refreshToken, DateTime expiresIn);
+        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
+        Task OnTokenUpdated(string accessToken, string refreshToken, DateTime expiresIn);
     }
 }

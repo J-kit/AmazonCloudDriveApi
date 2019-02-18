@@ -6,7 +6,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Azi.Tools
+namespace Azi.Amazon.CloudDrive
 {
     /// <summary>
     /// Tool class to retry operations on error

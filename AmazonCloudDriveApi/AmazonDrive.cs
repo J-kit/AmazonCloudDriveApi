@@ -14,8 +14,8 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
+using Azi.Amazon.CloudDrive.Http;
 using Azi.Amazon.CloudDrive.JsonObjects;
-using Azi.Tools;
 
 namespace Azi.Amazon.CloudDrive
 {
@@ -128,7 +128,7 @@ namespace Azi.Amazon.CloudDrive
                 return false;
             }
 
-            CallOnTokenUpdate(authTokens.access_token, authTokens.refresh_token, DateTime.UtcNow.AddSeconds(authTokens.expires_in));
+            await CallOnTokenUpdate(authTokens.access_token, authTokens.refresh_token, DateTime.UtcNow.AddSeconds(authTokens.expires_in));
 
             await Account.GetEndpoint().ConfigureAwait(false);
 
@@ -222,11 +222,11 @@ namespace Azi.Amazon.CloudDrive
             }
         }
 
-        private void CallOnTokenUpdate(string accessToken, string refreshToken, DateTime expiresIn)
+        private async Task CallOnTokenUpdate(string accessToken, string refreshToken, DateTime expiresIn)
         {
             if (weakOnTokenUpdate != null && weakOnTokenUpdate.TryGetTarget(out ITokenUpdateListener action))
             {
-                action.OnTokenUpdated(accessToken, refreshToken, expiresIn);
+                await action.OnTokenUpdated(accessToken, refreshToken, expiresIn);
             }
         }
 
@@ -353,7 +353,7 @@ namespace Azi.Amazon.CloudDrive
                 if (newtoken != null)
                 {
                     authTokens = newtoken;
-                    CallOnTokenUpdate(authTokens.access_token, authTokens.refresh_token, DateTime.UtcNow.AddSeconds(authTokens.expires_in));
+                    await CallOnTokenUpdate(authTokens.access_token, authTokens.refresh_token, DateTime.UtcNow.AddSeconds(authTokens.expires_in));
                 }
             }
             finally

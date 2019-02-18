@@ -7,6 +7,7 @@ using System.IO;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
+using Azi.Amazon.CloudDrive.Http;
 using Azi.Amazon.CloudDrive.JsonObjects;
 
 namespace Azi.Amazon.CloudDrive
@@ -21,7 +22,7 @@ namespace Azi.Amazon.CloudDrive
         /// </summary>
         /// <param name="id">File id to download.</param>
         /// <returns>Stream for file</returns>
-        Task<Stream> Download(string id);
+        Task<Stream> Download(string id, long? initialSeek = null);
 
         /// <summary>
         /// Downloads file with low level response processor

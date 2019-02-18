@@ -23,6 +23,7 @@
     <WarningLevel>4</WarningLevel>
     <DocumentationFile>bin\Debug\AmazonCloudDriveApi.XML</DocumentationFile>
     <CodeAnalysisRuleSet>AmazonCloudDriveApi.ruleset</CodeAnalysisRuleSet>
+    <LangVersion>7.2</LangVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -33,16 +34,17 @@
     <WarningLevel>4</WarningLevel>
     <DocumentationFile>bin\Release\AmazonCloudDriveApi.XML</DocumentationFile>
     <CodeAnalysisRuleSet>AmazonCloudDriveApi.ruleset</CodeAnalysisRuleSet>
+    <LangVersion>7.2</LangVersion>
   </PropertyGroup>
   <PropertyGroup>
-    <SignAssembly>true</SignAssembly>
+    <SignAssembly>false</SignAssembly>
   </PropertyGroup>
   <PropertyGroup>
     <AssemblyOriginatorKeyFile>StrongSign.pfx</AssemblyOriginatorKeyFile>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Newtonsoft.Json, Version=9.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
-      <HintPath>..\..\ACDDokanNet\packages\Newtonsoft.Json.9.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
+    <Reference Include="Newtonsoft.Json, Version=12.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\Newtonsoft.Json.12.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -62,11 +64,11 @@
     <Compile Include="AmazonProfile.cs" />
     <Compile Include="CloudDriveScope.cs" />
     <Compile Include="DownloadStream.cs" />
-    <Compile Include="FileUpload.cs" />
-    <Compile Include="GlobalSuppressions.cs" />
     <Compile Include="HttpClient.cs" />
-    <Compile Include="HttpWebException.cs" />
-    <Compile Include="HttpWebRequestExtensions.cs" />
+    <Compile Include="Http\FileUpload.cs" />
+    <Compile Include="GlobalSuppressions.cs" />
+    <Compile Include="Http\HttpWebException.cs" />
+    <Compile Include="Http\HttpWebRequestExtensions.cs" />
     <Compile Include="IAmazonAccount.cs" />
     <Compile Include="IAmazonDrive.cs" />
     <Compile Include="IAmazonFiles.cs" />
@@ -88,6 +90,7 @@
     <Compile Include="JsonObjects\TotalAndBillable.cs" />
     <Compile Include="JsonObjects\Usage.cs" />
     <Compile Include="KeyToValue.cs" />
+    <Compile Include="Http\MultipartBoundary.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Retry.cs" />
     <Compile Include="SendFileInfo.cs" />
@@ -96,16 +99,10 @@
     <None Include="AmazonCloudDriveApi.nuspec" />
     <None Include="AmazonCloudDriveApi.ruleset" />
     <None Include="App.config" />
-    <None Include="packages.config">
-      <SubType>Designer</SubType>
-    </None>
+    <None Include="packages.config" />
     <None Include="StrongSign.pfx" />
   </ItemGroup>
-  <ItemGroup>
-    <Analyzer Include="..\..\ACDDokanNet\packages\StyleCop.Analyzers.1.0.1\analyzers\dotnet\cs\Newtonsoft.Json.dll" />
-    <Analyzer Include="..\..\ACDDokanNet\packages\StyleCop.Analyzers.1.0.1\analyzers\dotnet\cs\StyleCop.Analyzers.CodeFixes.dll" />
-    <Analyzer Include="..\..\ACDDokanNet\packages\StyleCop.Analyzers.1.0.1\analyzers\dotnet\cs\StyleCop.Analyzers.dll" />
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

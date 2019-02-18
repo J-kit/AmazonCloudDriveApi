@@ -8,7 +8,7 @@ using System.IO;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
-using Azi.Tools;
+using Azi.Amazon.CloudDrive.Http;
 
 namespace Azi.Amazon.CloudDrive
 {
@@ -24,6 +24,9 @@ namespace Azi.Amazon.CloudDrive
         private long position;
         private HttpWebResponse response;
         private Stream responseStream;
+
+        public bool ThrowErrors { get; set; }
+        public long? InitialSeek { get; set; }
 
         /// <summary>
         ///     Initializes a new instance of the <see cref="DownloadStream" /> class.
@@ -52,7 +55,12 @@ namespace Azi.Amazon.CloudDrive
             {
                 if (length == null)
                 {
-                    throw new NotSupportedException("Length can be received only after first read");
+                    if (ThrowErrors)
+                    {
+                        throw new NotSupportedException("Length can be received only after first read");
+                    }
+
+                    return 0;
                 }
 
                 return (long)length;
@@ -133,6 +141,10 @@ namespace Azi.Amazon.CloudDrive
                             }
 
                             responseStream = response.GetResponseStream();
+                            if (InitialSeek.HasValue)
+                            {
+                                responseStream?.Seek(InitialSeek.Value, SeekOrigin.Current);
+                            }
                         }
 
                         Contract.Assert(responseStream != null, "responseStream!=null");
@@ -165,12 +177,15 @@ namespace Azi.Amazon.CloudDrive
                 case SeekOrigin.Begin:
                     position = offset;
                     break;
+
                 case SeekOrigin.Current:
                     position += offset;
                     break;
+
                 case SeekOrigin.End:
                     position = Length - offset;
                     break;
+
                 default:
                     throw new ArgumentOutOfRangeException();
             }

@@ -2,6 +2,8 @@
 // Copyright (c) Rambalac. All rights reserved.
 // </copyright>
 
+using Azi.Amazon.CloudDrive.Http;
+
 namespace Azi.Amazon.CloudDrive
 {
     using System;
@@ -13,7 +15,6 @@ namespace Azi.Amazon.CloudDrive
     using System.Threading.Tasks;
     using JsonObjects;
     using Newtonsoft.Json;
-    using Tools;
 
     /// <summary>
     /// Part to work with file upload and download
@@ -21,11 +22,14 @@ namespace Azi.Amazon.CloudDrive
     public partial class AmazonDrive
     {
         /// <inheritdoc/>
-        async Task<Stream> IAmazonFiles.Download(string id)
+        async Task<Stream> IAmazonFiles.Download(string id, long? initialSeek = null)
         {
             var content = await GetContentUrl().ConfigureAwait(false);
             var url = $"{content}nodes/{id}/content";
-            return new DownloadStream(http, url);
+            return new DownloadStream(http, url)
+            {
+                InitialSeek = initialSeek,
+            };
         }
 
         /// <inheritdoc/>

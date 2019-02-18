@@ -7,14 +7,17 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using Azi.Amazon.CloudDrive.Http;
 
-namespace Azi.Tools
+namespace Azi.Amazon.CloudDrive
 {
     /// <summary>
     /// Information about file to upload
     /// </summary>
     internal class SendFileInfo
     {
+        private MultipartBoundary _multipartBoundary;
+
         /// <summary>
         /// Gets or sets file name
         /// </summary>
@@ -50,5 +53,7 @@ namespace Azi.Tools
         /// Next position is not guarantied and depends on buffer size.
         /// </summary>
         public Func<long, Task<long>> Progress { get; set; } = null;
+
+        public MultipartBoundary MultipartBoundary => _multipartBoundary ?? (_multipartBoundary = new MultipartBoundary(this));
     }
 }
