@@ -47,7 +47,7 @@ namespace Azi.Amazon.CloudDrive
 
         private readonly string clientId;
         private readonly string clientSecret;
-        private readonly HttpClient http;
+        private readonly CustomHttpClient http;
         private readonly SemaphoreSlim tokenUpdateSem = new SemaphoreSlim(1, 1);
 
         private AuthToken authTokens;
@@ -63,7 +63,7 @@ namespace Azi.Amazon.CloudDrive
         {
             this.clientSecret = clientSecret;
             this.clientId = clientId;
-            http = new HttpClient(SettingsSetter);
+            http = new CustomHttpClient(SettingsSetter);
             http.RetryErrorProcessor.Add((int)HttpStatusCode.Unauthorized, async (code) =>
             {
                 await UpdateToken().ConfigureAwait(false);

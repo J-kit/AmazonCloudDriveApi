@@ -20,8 +20,8 @@ namespace Azi.Amazon.CloudDrive.Http
         /// <param name="message">Message</param>
         /// <param name="code">Status code</param>
         /// <param name="content">Content of error response</param>
-        public HttpWebException(string message, HttpStatusCode code, string content)
-            : base(message)
+        public HttpWebException(string message, HttpStatusCode code, string content, Exception ex = default)
+            : base(message, ex)
         {
             Content = content;
             StatusCode = code;

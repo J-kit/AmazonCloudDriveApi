@@ -17,7 +17,7 @@ namespace Azi.Amazon.CloudDrive
     /// </summary>
     internal class DownloadStream : Stream
     {
-        private readonly HttpClient http;
+        private readonly CustomHttpClient http;
         private readonly string url;
         private long lastposition;
         private long? length;
@@ -33,7 +33,7 @@ namespace Azi.Amazon.CloudDrive
         /// </summary>
         /// <param name="http">HttpClient to make requests</param>
         /// <param name="url">URL for download</param>
-        internal DownloadStream(HttpClient http, string url)
+        internal DownloadStream(CustomHttpClient http, string url)
         {
             this.http = http;
             this.url = url;
@@ -109,8 +109,8 @@ namespace Azi.Amazon.CloudDrive
         {
             int? result = null;
             await Retry.Do(
-                HttpClient.RetryTimes,
-                HttpClient.RetryDelay,
+                CustomHttpClient.RetryTimes,
+                CustomHttpClient.RetryDelay,
                 async () =>
                 {
                     try

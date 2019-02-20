@@ -18,7 +18,7 @@ namespace Azi.Amazon.CloudDrive.Http
     /// <summary>
     /// Http helper class to send REST API requests
     /// </summary>
-    internal class HttpClient
+    internal class CustomHttpClient
     {
         /// <summary>
         /// Maximum number of retries.
@@ -36,11 +36,11 @@ namespace Azi.Amazon.CloudDrive.Http
 #endif
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="HttpClient"/> class.
+        /// Initializes a new instance of the <see cref="CustomHttpClient"/> class.
         /// Constructs new class with initializing callback.
         /// </summary>
         /// <param name="settingsSetter">Async func to configure HttpWebRequest</param>
-        public HttpClient(Func<HttpWebRequest, Task> settingsSetter)
+        public CustomHttpClient(Func<HttpWebRequest, Task> settingsSetter)
         {
             this.settingsSetter = settingsSetter;
             retryErrorProcessorKeyToValue = new KeyToValue<int, RetryErrorProcessorDelegate>(RetryErrorProcessor);
@@ -423,8 +423,6 @@ namespace Azi.Amazon.CloudDrive.Http
                },
                FileSendExceptionProcessor);
             return result;
-
-
         }
 
         /// <summary>
@@ -525,7 +523,7 @@ namespace Azi.Amazon.CloudDrive.Http
                     {
                         var reader = new StreamReader(str);
                         var text = await reader.ReadToEndAsync();
-                        throw new HttpWebException(webex.Message, webresp.StatusCode, text);
+                        throw new HttpWebException(webex.Message, webresp.StatusCode, text, ex);
                     }
                 }
 
