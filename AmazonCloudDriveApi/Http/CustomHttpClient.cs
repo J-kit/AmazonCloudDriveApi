@@ -96,10 +96,12 @@ namespace Azi.Amazon.CloudDrive.Http
         public async Task<HttpWebRequest> GetHttpClient(string url)
         {
             var result = (HttpWebRequest)WebRequest.Create(url);
+
 #if DEBUG
             Debug.WriteLine("Client created: " + clients++);
 #endif
             await settingsSetter(result);
+
             return result;
         }
 
